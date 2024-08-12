@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="jp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Test</title>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div>
+        <label for="messageInput">Send a message to the server:</label>
+        <input type="text" id="messageInput" placeholder="Enter message here">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <div>
+        <h2>Messages from Server:</h2>
+        <ul id="messages"></ul>
+    </div>
+
+    <script>
+        let socket;
+        const messagesList = document.getElementById('messages');
+
+        function connectWebSocket() {
+            socket = new WebSocket('ws://localhost:8080');
+
+            socket.onopen = function(event) {
+                console.log('Connected to WebSocket server.');
+                addMessage('Connected to WebSocket server.');
+            };
+
+            socket.onmessage = function(event) {
+                console.log('Message from server: ', event.data);
+                addMessage('Server: ' + event.data);
+            };
+
+            socket.onclose = function(event) {
+                console.log('Disconnected from WebSocket server.');
+                addMessage('Disconnected from WebSocket server.');
+            };
+
+            socket.onerror = function(error) {
+                console.log('WebSocket error: ', error);
+                addMessage('WebSocket error: ' + error.message);
+            };
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value;
+
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(message);
+                addMessage('You: ' + message);
+                input.value = '';
+            } else {
+                addMessage('WebSocket is not connected.');
+            }
+        }
+
+        function addMessage(message) {
+            const li = document.createElement('li');
+            li.textContent = message;
+            messagesList.appendChild(li);
+        }
+
+        // Connect to WebSocket when the page loads
+        window.onload = connectWebSocket;
+    </script>
+</body>
+</html>
