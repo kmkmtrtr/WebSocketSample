@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="jp">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,11 +7,27 @@
 </head>
 <body>
     <h1>WebSocket Test</h1>
+
+    <!-- ポート番号の指定 -->
+    <div>
+        <label for="portInput">Port:</label>
+        <input type="number" id="portInput" placeholder="Enter port number" value="8080" min="1" max="65535">
+    </div>
+
+    <!-- 接続・切断ボタン -->
+    <div>
+        <button id="connectButton" onclick="connectWebSocket()">Connect</button>
+        <button id="disconnectButton" onclick="disconnectWebSocket()" disabled>Disconnect</button>
+    </div>
+
+    <!-- メッセージ送信機能 -->
     <div>
         <label for="messageInput">Send a message to the server:</label>
-        <input type="text" id="messageInput" placeholder="Enter message here">
-        <button onclick="sendMessage()">Send</button>
+        <input type="text" id="messageInput" placeholder="Enter message here" disabled>
+        <button id="sendButton" onclick="sendMessage()" disabled>Send</button>
     </div>
+
+    <!-- サーバーからのメッセージ表示 -->
     <div>
         <h2>Messages from Server:</h2>
         <ul id="messages"></ul>
@@ -20,13 +36,19 @@
     <script>
         let socket;
         const messagesList = document.getElementById('messages');
+        const connectButton = document.getElementById('connectButton');
+        const disconnectButton = document.getElementById('disconnectButton');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
 
         function connectWebSocket() {
-            socket = new WebSocket('ws://localhost:8080');
+            const port = document.getElementById('portInput').value;
+            socket = new WebSocket('ws://localhost:' + port);
 
             socket.onopen = function(event) {
                 console.log('Connected to WebSocket server.');
                 addMessage('Connected to WebSocket server.');
+                toggleConnectionButtons(true);
             };
 
             socket.onmessage = function(event) {
@@ -37,6 +59,7 @@
             socket.onclose = function(event) {
                 console.log('Disconnected from WebSocket server.');
                 addMessage('Disconnected from WebSocket server.');
+                toggleConnectionButtons(false);
             };
 
             socket.onerror = function(error) {
@@ -45,14 +68,19 @@
             };
         }
 
+        function disconnectWebSocket() {
+            if (socket) {
+                socket.close();
+            }
+        }
+
         function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const message = input.value;
+            const message = messageInput.value;
 
             if (socket && socket.readyState === WebSocket.OPEN) {
                 socket.send(message);
                 addMessage('You: ' + message);
-                input.value = '';
+                messageInput.value = '';
             } else {
                 addMessage('WebSocket is not connected.');
             }
@@ -64,8 +92,17 @@
             messagesList.appendChild(li);
         }
 
-        // Connect to WebSocket when the page loads
-        window.onload = connectWebSocket;
+        function toggleConnectionButtons(connected) {
+            connectButton.disabled = connected;
+            disconnectButton.disabled = !connected;
+            messageInput.disabled = !connected;
+            sendButton.disabled = !connected;
+        }
+
+        // 初期状態で接続は切断状態にする
+        window.onload = function() {
+            toggleConnectionButtons(false);
+        };
     </script>
 </body>
 </html>
