@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>クエリを保存して閉じるやつ</title>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const param = params.get('value');
+        if (param) {
+            localStorage.setItem('value', param);
+        }
+        window.close();
+    </script>
+</head>
+<body>
+    <p>クエリを保存して閉じるやつ</p>
+</body>
+</html>
